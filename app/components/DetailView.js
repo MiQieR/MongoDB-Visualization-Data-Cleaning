@@ -60,7 +60,14 @@ export function DetailView({ item, editedItem, editMode, onClose, onSave, onDele
     );
   };
 
-  const imageUrl = localItem?.thumb_image_url || localItem?.image_url || localItem?.image;
+  const getImageSource = (data) => {
+    if (!data) return null;
+    if (data.image_file) {
+      return data.image_file.startsWith('data:') ? data.image_file : `data:image/jpeg;base64,${data.image_file}`;
+    }
+    return data.thumb_image_url || data.image_url || data.image;
+  };
+  const imageUrl = getImageSource(localItem);
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end" role="dialog">

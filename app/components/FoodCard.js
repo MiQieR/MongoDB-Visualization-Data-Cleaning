@@ -1,7 +1,14 @@
 import { Check } from "lucide-react";
 
 export function FoodCard({ item, selected, onSelect, onClick, editMode }) {
-  const imageUrl = item.thumb_image_url || item.image_url || item.image;
+  const getImageSource = (data) => {
+    if (!data) return null;
+    if (data.image_file) {
+      return data.image_file.startsWith('data:') ? data.image_file : `data:image/jpeg;base64,${data.image_file}`;
+    }
+    return data.thumb_image_url || data.image_url || data.image;
+  };
+  const imageUrl = getImageSource(item);
 
   return (
     <div 

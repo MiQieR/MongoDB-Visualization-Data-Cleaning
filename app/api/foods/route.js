@@ -26,7 +26,7 @@ export async function GET(request) {
     filter.$and.push(searchFilter)
   }
   if (category) {
-    filter.categories = { $in: category.split(",").filter(Boolean) }
+    filter.categories = { $all: category.split(",").filter(Boolean) }
   }
   const rangeFilters = [
     buildMultiFieldRange(["calory", "calorie", "energy"], minCalory, maxCalory),
@@ -50,6 +50,7 @@ export async function GET(request) {
     thumb_image_url: 1,
     image_url: 1,
     image: 1,
+    image_file: 1,
     calory: 1,
     calorie: 1,
     energy: 1,
