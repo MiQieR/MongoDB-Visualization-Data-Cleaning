@@ -21,7 +21,16 @@ MONGODB_URI=your_mongodb_uri
 MONGODB_URI_ADMIN=your_mongodb_uri_admin
 MONGODB_DB=your_database_name
 MONGODB_COLLECTION=foods
+MONGODB_EDIT_TOKEN=your_edit_token
 ```
+
+提示：
+
+1. `MONGODB_URI`：普通用户连接 URI，用于读取数据。需要手动新建只读权限的用户，格式参考下面的示例。
+2. `MONGODB_URI_ADMIN`：管理员连接 URI，用于写入数据。新建MongoDB Atlas Cluster时，会自动生成一个ADMIN URI，格式为 `mongodb+srv://<username>:<password>@<cluster-address>/admin?retryWrites=true&w=majority`。
+3. `MONGODB_DB`：数据库项目名称。
+4. `MONGODB_COLLECTION`：Cluster名称，默认 `foods`。
+5. `MONGODB_EDIT_TOKEN`：编辑令牌，用于在详情弹窗中验证编辑权限。你可以自行设置，建议使用16以上位随机字符。
 
 ## 本地开发
 ```
