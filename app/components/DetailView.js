@@ -73,7 +73,7 @@ export function DetailView({ item, editedItem, editMode, onClose, onSave, onDele
         flex flex-col animate-in slide-in-from-right duration-500 ease-out
       ">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 sm:px-8 py-4 sm:py-6 border-b border-neutral-100 dark:border-neutral-800">
+        <div className="flex items-center justify-between px-6 sm:px-8 py-4 sm:py-6 border-b border-neutral-100 dark:border-neutral-800 pt-[calc(1rem+env(safe-area-inset-top))] sm:pt-6">
           <div className="min-w-0">
             <h2 className="text-xl sm:text-2xl font-black tracking-tight text-neutral-900 dark:text-white truncate">
               {editMode ? "编辑数据" : "数据详情"}
@@ -109,7 +109,7 @@ export function DetailView({ item, editedItem, editMode, onClose, onSave, onDele
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 sm:p-8 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-6 sm:p-8 custom-scrollbar pb-[calc(2rem+env(safe-area-inset-bottom))]">
             <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 mb-8 sm:mb-10">
                 <div className="w-full sm:w-40 aspect-square sm:h-40 flex-shrink-0 rounded-3xl overflow-hidden bg-white dark:bg-neutral-800 border border-neutral-100 dark:border-neutral-700 shadow-xl">
                     {imageUrl ? (

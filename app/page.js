@@ -256,9 +256,9 @@ export default function Home() {
         onClose={() => setSidebarHidden(true)}
       />
 
-      <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden relative transition-all duration-300">
+      <main className="flex-1 flex flex-col min-w-0 h-[100dvh] overflow-hidden relative transition-all duration-300">
         
-        <header className="flex-shrink-0 px-4 sm:px-8 py-4 sm:py-5 flex items-center justify-between z-20 backdrop-blur-md bg-black/40 sticky top-0 transition-all duration-500 border-b border-neutral-800">
+        <header className="flex-shrink-0 px-4 sm:px-8 py-4 sm:py-5 flex items-center justify-between z-20 backdrop-blur-md bg-black/40 sticky top-0 transition-all duration-500 border-b border-neutral-800 pt-[calc(1rem+env(safe-area-inset-top))] sm:pt-5">
           <div className="flex items-center gap-3 sm:gap-4 flex-1 max-w-2xl">
             <button 
               onClick={() => setSidebarHidden(!sidebarHidden)}
@@ -366,7 +366,7 @@ export default function Home() {
             )}
         </div>
 
-        <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-20 w-full px-4 flex justify-center">
+        <div className="absolute bottom-[calc(1rem+env(safe-area-inset-bottom))] sm:bottom-6 left-1/2 -translate-x-1/2 z-20 w-full px-4 flex justify-center">
              <div className="flex items-center gap-1 sm:gap-2 p-1 sm:p-1.5 bg-neutral-900/95 backdrop-blur-xl border border-neutral-800 rounded-xl sm:rounded-2xl shadow-2xl transition-colors duration-500">
                 <button 
                     disabled={page <= 1}
