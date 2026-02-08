@@ -1,29 +1,13 @@
 "use client"
 
-import { Fragment, useEffect, useState } from "react"
-
-const nutrientKeys = {
-  calory: ["calory", "calorie", "energy"],
-  protein: ["protein"],
-  fat: ["fat"],
-  carb: ["carbohydrate", "carb", "carbs"]
-}
-
-function pickValue(item, keys) {
-  for (const key of keys) {
-    const value = item?.[key]
-    if (value !== undefined && value !== null && value !== "") {
-      return value
-    }
-  }
-  return "-"
-}
-
-function formatImage(item) {
-  return item?.thumb_image_url || item?.image_url || item?.image || ""
-}
+import { useState, useEffect } from "react"
+import { Search, SlidersHorizontal, Settings, ChevronLeft, ChevronRight, X, Loader2, CheckSquare, Square, Type, Maximize } from "lucide-react"
+import { Sidebar } from "./components/Sidebar"
+import { FoodCard } from "./components/FoodCard"
+import { DetailView } from "./components/DetailView"
 
 export default function Home() {
+  // State
   const [foods, setFoods] = useState([])
   const [filters, setFilters] = useState({ categories: [] })
   const [search, setSearch] = useState("")
@@ -31,33 +15,76 @@ export default function Home() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(24)
   const [total, setTotal] = useState(0)
+  const [dbTotal, setDbTotal] = useState(0) // Total items in DB
   const [loading, setLoading] = useState(false)
   const [editMode, setEditMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState([])
   const [activeItem, setActiveItem] = useState(null)
   const [editedItem, setEditedItem] = useState(null)
   const [showSettings, setShowSettings] = useState(false)
-  const [cardScale, setCardScale] = useState(0.7)
-  const [textScale, setTextScale] = useState(1.4)
   const [preferMaterials, setPreferMaterials] = useState(false)
   const [jumpPage, setJumpPage] = useState("1")
-  const [sidebarHidden, setSidebarHidden] = useState(false)
+  const [sidebarHidden, setSidebarHidden] = useState(true)
+  
+  // Settings State with persistence initialization
+  const [cardScale, setCardScale] = useState(1.0)
+  const [textScale, setTextScale] = useState(1.0)
+  const [isInitialized, setIsInitialized] = useState(false)
+  
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
 
+  // Initialization Effect (Load from LocalStorage)
   useEffect(() => {
+    // Set initial sidebar state based on screen width
+    if (window.innerWidth >= 1024) {
+      setSidebarHidden(false)
+    }
+
+    // Load Settings
+    const savedCardScale = localStorage.getItem('food-admin-card-scale')
+    if (savedCardScale) setCardScale(parseFloat(savedCardScale))
+    
+    const savedTextScale = localStorage.getItem('food-admin-text-scale')
+    if (savedTextScale) setTextScale(parseFloat(savedTextScale))
+    
+    const savedPageSize = localStorage.getItem('food-admin-page-size')
+    if (savedPageSize) setPageSize(parseInt(savedPageSize))
+
+    setIsInitialized(true)
+    
     fetch("/api/filters")
       .then((res) => res.json())
       .then((data) => setFilters(data))
+      
+    // Fetch initial DB total (no filters)
+    fetch("/api/foods?page=1&pageSize=1")
+      .then((res) => res.json())
+      .then((data) => setDbTotal(data.total || 0))
   }, [])
+  
+  // Persistence Effects
+  useEffect(() => {
+      if (isInitialized) localStorage.setItem('food-admin-card-scale', cardScale.toString())
+  }, [cardScale, isInitialized])
 
   useEffect(() => {
+      if (isInitialized) localStorage.setItem('food-admin-text-scale', textScale.toString())
+  }, [textScale, isInitialized])
+  
+  useEffect(() => {
+      if (isInitialized) localStorage.setItem('food-admin-page-size', pageSize.toString())
+  }, [pageSize, isInitialized])
+
+  useEffect(() => {
+    if (!isInitialized) return;
+
     const params = new URLSearchParams()
     if (search) params.set("search", search)
-    if (selectedCategories.length)
-      params.set("category", selectedCategories.join(","))
+    if (selectedCategories.length) params.set("category", selectedCategories.join(","))
     params.set("page", String(page))
     params.set("pageSize", String(pageSize))
     if (preferMaterials) params.set("preferMaterials", "1")
+    
     setLoading(true)
     fetch(`/api/foods?${params.toString()}`)
       .then((res) => res.json())
@@ -68,12 +95,13 @@ export default function Home() {
         setSelectedIds([])
       })
       .catch(() => setLoading(false))
-  }, [search, selectedCategories, page, pageSize, preferMaterials])
+  }, [search, selectedCategories, page, pageSize, preferMaterials, isInitialized])
 
   useEffect(() => {
     setJumpPage(String(page))
   }, [page])
 
+  // Handlers
   const toggleCategory = (category) => {
     setPage(1)
     setSelectedCategories((prev) =>
@@ -97,10 +125,23 @@ export default function Home() {
   }
 
   const openDetail = async (item) => {
-    const res = await fetch(`/api/foods/${item.id}`)
-    const data = await res.json()
-    setActiveItem(data.item || item)
-    setEditedItem(structuredClone(data.item || item))
+    setActiveItem(item)
+    if (editMode) {
+        setEditedItem(structuredClone(item))
+    }
+    
+    try {
+        const res = await fetch(`/api/foods/${item.id}`)
+        const data = await res.json()
+        if (data.item) {
+            setActiveItem(data.item)
+            if (editMode) {
+                setEditedItem(structuredClone(data.item))
+            }
+        }
+    } catch (e) {
+        console.error("Failed to fetch details", e)
+    }
   }
 
   const closeDetail = () => {
@@ -110,6 +151,8 @@ export default function Home() {
 
   const handleBulkDelete = async () => {
     if (!selectedIds.length) return
+    if (!confirm(`确定要删除 ${selectedIds.length} 项吗？`)) return
+    
     const res = await fetch("/api/foods/bulk-delete", {
       method: "POST",
       headers: {
@@ -128,6 +171,7 @@ export default function Home() {
     if (!activeItem || !editedItem) return
     const payload = { ...editedItem }
     delete payload._id
+    
     const res = await fetch(`/api/foods/${activeItem.id}`, {
       method: "PATCH",
       headers: {
@@ -143,11 +187,16 @@ export default function Home() {
       setFoods((prev) =>
         prev.map((item) => (item.id === data.item.id ? data.item : item))
       )
+      alert("保存成功")
+    } else {
+        alert("保存失败")
     }
   }
 
   const handleDeleteDetail = async () => {
     if (!activeItem) return
+    if (!confirm("确定要删除此项吗？")) return
+
     const res = await fetch(`/api/foods/${activeItem.id}`, {
       method: "DELETE",
       headers: {
@@ -160,334 +209,308 @@ export default function Home() {
     }
   }
 
-  const toggleSelectAll = () => {
-    if (selectedIds.length === foods.length) {
-      setSelectedIds([])
-      return
-    }
-    setSelectedIds(foods.map((item) => item.id))
+  const handleSelectAll = () => {
+     const pageIds = foods.map(f => f.id);
+     const allSelected = pageIds.every(id => selectedIds.includes(id));
+     if (allSelected) {
+         setSelectedIds(prev => prev.filter(id => !pageIds.includes(id)));
+     } else {
+         const newSelection = [...selectedIds];
+         pageIds.forEach(id => {
+             if (!newSelection.includes(id)) newSelection.push(id);
+         });
+         setSelectedIds(newSelection);
+     }
+  }
+  
+  const handleInverseSelect = () => {
+      const pageIds = foods.map(f => f.id);
+      const newSelection = [...selectedIds];
+      const itemsToRemove = [];
+      const itemsToAdd = [];
+      pageIds.forEach(id => {
+          if (newSelection.includes(id)) {
+              itemsToRemove.push(id);
+          } else {
+              itemsToAdd.push(id);
+          }
+      });
+      const finalSelection = newSelection
+          .filter(id => !itemsToRemove.includes(id))
+          .concat(itemsToAdd);
+      setSelectedIds(finalSelection);
   }
 
   const handleFieldChange = (key, value) => {
     setEditedItem((prev) => ({ ...prev, [key]: value }))
   }
 
-  const renderValue = (key, value) => {
-    if (key === "image_file") {
-      if (!value) return "-"
-      return "[binary] " + String(value).slice(0, 120) + "..."
-    }
-    if (value === null || value === undefined) return "-"
-    if (typeof value === "object") {
-      return JSON.stringify(value)
-    }
-    return String(value)
-  }
-
-  const renderEditor = (key, value) => {
-    if (key === "_id" || key === "image_file") {
-      return (
-        <div className="kv-value muted">{renderValue(key, value)}</div>
-      )
-    }
-    if (typeof value === "object" && value !== null) {
-      return (
-        <textarea
-          className="inline-editor"
-          value={JSON.stringify(value)}
-          onChange={(e) => {
-            try {
-              handleFieldChange(key, JSON.parse(e.target.value))
-            } catch (error) {
-              handleFieldChange(key, e.target.value)
-            }
-          }}
-        />
-      )
-    }
-    return (
-      <input
-        className="inline-input"
-        value={value ?? ""}
-        onChange={(e) => handleFieldChange(key, e.target.value)}
-      />
-    )
-  }
-
   return (
-    <div className="app" style={{ gridTemplateColumns: sidebarHidden ? "1fr" : undefined }}>
-      {!sidebarHidden && (
-      <aside className="sidebar">
-        <div>
-          <h2>筛选</h2>
-          <div className="filters">
-            <div className="filter-group">
-              <h3>分类</h3>
-              <div className="filter-list">
-                {filters.categories?.map((category) => (
-                  <label className="filter-item" key={category}>
-                    <input
-                      type="checkbox"
-                      checked={selectedCategories.includes(category)}
-                      onChange={() => toggleCategory(category)}
-                    />
-                    <span>{category}</span>
-                  </label>
-                ))}
+    <div className="flex min-h-screen font-sans selection:bg-blue-100 selection:text-blue-900 transition-colors duration-500">
+      
+      <Sidebar 
+        filters={filters} 
+        selectedCategories={selectedCategories} 
+        onToggleCategory={toggleCategory}
+        hidden={sidebarHidden}
+        onClose={() => setSidebarHidden(true)}
+      />
+
+      <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden relative transition-all duration-300">
+        
+        <header className="flex-shrink-0 px-4 sm:px-8 py-4 sm:py-5 flex items-center justify-between z-20 backdrop-blur-md bg-black/40 sticky top-0 transition-all duration-500 border-b border-neutral-800">
+          <div className="flex items-center gap-3 sm:gap-4 flex-1 max-w-2xl">
+            <button 
+              onClick={() => setSidebarHidden(!sidebarHidden)}
+              className="p-2 rounded-lg hover:bg-neutral-800 transition-colors text-neutral-400"
+            >
+              <SlidersHorizontal size={20} />
+            </button>
+            
+            <div className="relative flex-1 group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-blue-500 transition-colors" size={18} />
+              <input 
+                className="w-full pl-10 pr-4 sm:pr-24 py-2 sm:py-2.5 rounded-xl bg-neutral-900/50 border border-neutral-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all shadow-sm backdrop-blur-md text-sm sm:text-base text-white"
+                placeholder="搜索..."
+                value={search}
+                onChange={(e) => {
+                    setSearch(e.target.value)
+                    setPage(1)
+                }}
+              />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:flex items-center gap-3 text-[10px] font-bold text-neutral-400 pointer-events-none uppercase tracking-tight">
+                  <span className="bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded">当前: {total}</span>
+                  <span className="w-px h-3 bg-neutral-700"></span>
+                  <span>总库: {dbTotal}</span>
               </div>
             </div>
           </div>
-        </div>
-      </aside>
-      )}
-      <main className="content">
-        <div className="header">
-          <div className="search">
-            <input
-              placeholder="搜索名称 / ID / 编码"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value)
-                setPage(1)
-              }}
-            />
-            <span className="muted">
-              {loading ? "加载中..." : `共 ${total} 条`}
-            </span>
-          </div>
-          <div className="top-actions">
-            <button
-              className="toggle"
-              onClick={() => setSidebarHidden((prev) => !prev)}
-            >
-              {sidebarHidden ? "显示边栏" : "隐藏边栏"}
-            </button>
-            <button className="toggle" onClick={() => setShowSettings(true)}>
-              设置
-            </button>
-          </div>
-        </div>
-        <div className="scale-bars">
-          <div className="scale-bar">
-            <span>卡片缩放</span>
-            <input
-              type="range"
-              min="0.4"
-              max="1.5"
-              step="0.05"
-              value={cardScale}
-              onChange={(e) => setCardScale(Number(e.target.value))}
-            />
-            <span className="muted">{Math.round(cardScale * 100)}%</span>
-          </div>
-          <div className="scale-bar">
-            <span>文字缩放</span>
-            <input
-              type="range"
-              min="0.6"
-              max="3"
-              step="0.05"
-              value={textScale}
-              onChange={(e) => setTextScale(Number(e.target.value))}
-            />
-            <span className="muted">{Math.round(textScale * 100)}%</span>
-          </div>
-        </div>
-        {editMode && (
-          <div className="toolbar">
-            <button className="primary" onClick={toggleSelectAll}>
-              {selectedIds.length === foods.length ? "取消全选" : "全选"}
-            </button>
-            <button className="danger" onClick={handleBulkDelete}>
-              批量删除
-            </button>
-            <span className="muted">已选择 {selectedIds.length} 项</span>
-          </div>
-        )}
-        {foods.length === 0 && !loading ? (
-          <div className="empty-state">暂无数据</div>
-        ) : (
-          <div
-            className="grid"
-            style={{
-              "--card-scale": String(cardScale),
-              "--text-scale": String(textScale)
-            }}
-          >
-            {foods.map((item) => (
-              <div className="card-wrap" key={item.id}>
-                {editMode && (
-                  <label className="card-select">
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.includes(item.id)}
-                      onChange={() =>
-                        setSelectedIds((prev) =>
-                          prev.includes(item.id)
-                            ? prev.filter((id) => id !== item.id)
-                            : [...prev, item.id]
-                        )
-                      }
-                    />
-                    选中
-                  </label>
-                )}
-                <div className="card" onClick={() => openDetail(item)}>
-                  <div className="card-media">
-                    {formatImage(item) ? (
-                      <img src={formatImage(item)} alt={item.name} />
-                    ) : (
-                      <div className="card-image-placeholder" />
+
+          <div className="flex items-center gap-2 sm:gap-4 ml-3 sm:ml-4">
+            {editMode && (
+                <div className="flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+                    <button 
+                        onClick={handleSelectAll}
+                        className="p-2 sm:px-3 sm:py-2 bg-neutral-900 border border-neutral-800 hover:shadow-md text-neutral-300 text-sm font-medium rounded-lg shadow-sm transition-colors flex items-center gap-2 backdrop-blur-md"
+                        title="全选/取消全选当前页"
+                    >
+                        <CheckSquare size={16} />
+                        <span className="hidden md:inline">全选</span>
+                    </button>
+                    
+                    {selectedIds.length > 0 && (
+                        <>
+                            <div className="w-px h-6 bg-neutral-700 mx-1 hidden sm:block"></div>
+                            <span className="text-xs sm:text-sm font-medium text-neutral-500 tabular-nums">已选 {selectedIds.length}</span>
+                            <button 
+                                onClick={handleBulkDelete}
+                                className="px-3 sm:px-4 py-1.5 sm:py-2 bg-red-500 hover:bg-red-600 text-white text-xs sm:text-sm font-medium rounded-lg shadow-sm transition-colors"
+                            >
+                                删除
+                            </button>
+                        </>
                     )}
-                    <div className="card-id-badge">ID {item.id}</div>
-                    <div className="card-info">
-                      <div className="card-title">{item.name || "未命名"}</div>
-                      <div className="card-meta">
-                        <span>热量 {pickValue(item, nutrientKeys.calory)}</span>
-                        <span>蛋白质 {pickValue(item, nutrientKeys.protein)}</span>
-                        <span>脂肪 {pickValue(item, nutrientKeys.fat)}</span>
-                        <span>碳水 {pickValue(item, nutrientKeys.carb)}</span>
-                      </div>
-                    </div>
-                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-        <div className="pagination">
-          <button onClick={() => setPage((p) => Math.max(1, p - 1))}>
-            上一页
-          </button>
-          <span>
-            第 {page} / {totalPages} 页
-          </span>
-          <div className="page-jump">
-            <input
-              value={jumpPage}
-              onChange={(e) => setJumpPage(e.target.value)}
-              placeholder="页码"
-            />
-            <button
-              onClick={() => {
-                const next = Math.min(
-                  totalPages,
-                  Math.max(1, Number(jumpPage || 1))
-                )
-                setPage(next)
-              }}
+            )}
+            
+            <button 
+              onClick={() => setShowSettings(true)}
+              className="p-2 sm:p-2.5 rounded-full bg-neutral-900 border border-neutral-800 shadow-sm hover:shadow-md transition-all text-neutral-400 backdrop-blur-md"
             >
-              跳转
+              <Settings size={20} />
             </button>
           </div>
-          <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-          >
-            下一页
-          </button>
+        </header>
+
+        <div 
+            className="flex-1 overflow-y-auto px-4 sm:px-8 pb-32 custom-scrollbar"
+            style={{
+                "--card-scale": cardScale,
+                "--text-scale": textScale
+            }}
+        >
+            {loading ? (
+                <div className="h-full flex items-center justify-center text-neutral-400 flex-col gap-4">
+                    <Loader2 size={40} className="animate-spin text-blue-500" />
+                    <p>正在加载数据库...</p>
+                </div>
+            ) : foods.length === 0 ? (
+                <div className="h-64 flex items-center justify-center text-neutral-400 flex-col gap-2 border-2 border-dashed border-neutral-800 rounded-3xl mt-10">
+                    <p className="font-medium text-lg text-neutral-400">暂无数据</p>
+                    <p className="text-sm text-neutral-500">尝试调整筛选条件或搜索关键词</p>
+                </div>
+            ) : (
+                <div 
+                    className="grid gap-4 sm:gap-6 transition-all duration-300"
+                    style={{
+                        gridTemplateColumns: `repeat(auto-fill, minmax(calc(160px * var(--card-scale, 1)), 1fr))`
+                    }}
+                >
+                    {foods.map(item => (
+                        <FoodCard 
+                            key={item.id} 
+                            item={item} 
+                            editMode={editMode}
+                            selected={selectedIds.includes(item.id)}
+                            onSelect={() => {
+                                setSelectedIds(prev => 
+                                    prev.includes(item.id) 
+                                    ? prev.filter(id => id !== item.id) 
+                                    : [...prev, item.id]
+                                )
+                            }}
+                            onClick={() => openDetail(item)}
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
+
+        <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-20 w-full px-4 flex justify-center">
+             <div className="flex items-center gap-1 sm:gap-2 p-1 sm:p-1.5 bg-neutral-900/95 backdrop-blur-xl border border-neutral-800 rounded-xl sm:rounded-2xl shadow-2xl transition-colors duration-500">
+                <button 
+                    disabled={page <= 1}
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl hover:bg-neutral-800 disabled:opacity-30 disabled:hover:bg-transparent transition-colors text-neutral-400"
+                >
+                    <ChevronLeft size={18} className="sm:w-5 sm:h-5" />
+                </button>
+                
+                <div className="flex items-center gap-1 sm:gap-2 px-1 sm:px-2 text-xs sm:text-sm font-medium text-neutral-400">
+                    <span className="hidden xs:inline">第</span>
+                    <input 
+                        className="w-10 sm:w-12 text-center py-0.5 sm:py-1 rounded-md bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none text-white font-mono"
+                        value={jumpPage}
+                        onChange={(e) => setJumpPage(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                const next = Math.min(totalPages, Math.max(1, Number(jumpPage || 1)))
+                                setPage(next)
+                            }
+                        }}
+                    />
+                    <span className="opacity-50">/ {totalPages} <span className="hidden xs:inline">页</span></span>
+                </div>
+
+                <button 
+                    disabled={page >= totalPages}
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl hover:bg-neutral-800 disabled:opacity-30 disabled:hover:bg-transparent transition-colors text-neutral-400"
+                >
+                    <ChevronRight size={18} className="sm:w-5 sm:h-5" />
+                </button>
+             </div>
         </div>
       </main>
+
       {activeItem && (
-        <div className="modal-backdrop" onClick={closeDetail}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <div>
-                <div className="card-title">{activeItem.name || "未命名"}</div>
-                <div className="muted">ID {activeItem.id}</div>
-              </div>
-              <div className="top-actions">
-                {editMode && (
-                  <>
-                    <button className="primary" onClick={handleSaveDetail}>
-                      保存
-                    </button>
-                    <button className="danger" onClick={handleDeleteDetail}>
-                      删除
-                    </button>
-                  </>
-                )}
-                <button className="toggle" onClick={closeDetail}>
-                  关闭
-                </button>
-              </div>
-            </div>
-            <div className="modal-body">
-              <div className="detail-image">
-                {formatImage(activeItem) ? (
-                  <img src={formatImage(activeItem)} alt={activeItem.name} />
-                ) : (
-                  <div className="detail-image-placeholder">暂无图片</div>
-                )}
-              </div>
-              <div className="kv-list">
-                {Object.entries(editMode ? editedItem || {} : activeItem).map(
-                  ([key, value]) => (
-                    <Fragment key={key}>
-                      <div className="kv-key">{key}</div>
-                      {editMode ? (
-                        renderEditor(key, value)
-                      ) : (
-                        <div className="kv-value">{renderValue(key, value)}</div>
-                      )}
-                    </Fragment>
-                  )
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        <DetailView 
+            item={activeItem}
+            editedItem={editedItem}
+            editMode={editMode}
+            onClose={closeDetail}
+            onSave={handleSaveDetail}
+            onDelete={handleDeleteDetail}
+            onChange={handleFieldChange}
+        />
       )}
+
       {showSettings && (
-        <div className="modal-backdrop" onClick={() => setShowSettings(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <div className="card-title">设置</div>
-              <button className="toggle" onClick={() => setShowSettings(false)}>
-                关闭
-              </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setShowSettings(false)} />
+            <div className="relative bg-neutral-900/90 backdrop-blur-xl w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-neutral-800 transition-colors duration-500">
+                <div className="px-6 py-4 border-b border-neutral-800 flex items-center justify-between bg-neutral-900/50">
+                    <h3 className="font-semibold text-lg text-white">设置</h3>
+                    <button onClick={() => setShowSettings(false)} className="p-1 rounded-full hover:bg-neutral-800 transition-colors text-neutral-500"><X size={20}/></button>
+                </div>
+                <div className="p-4 sm:p-6 space-y-6 sm:space-y-8">
+                    {/* Switches */}
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <span className="text-neutral-300 font-medium text-sm">编辑模式</span>
+                            <button 
+                                onClick={toggleEditMode}
+                                className={`w-11 h-6 rounded-full transition-colors relative ${editMode ? 'bg-blue-500' : 'bg-neutral-700'}`}
+                            >
+                                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${editMode ? 'translate-x-5' : 'translate-x-0'}`} />
+                            </button>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                             <span className="text-neutral-300 font-medium text-sm">优先显示菜</span>
+                             <button 
+                                onClick={() => {
+                                    setPage(1)
+                                    setPreferMaterials(prev => !prev)
+                                }}
+                                className={`w-11 h-6 rounded-full transition-colors relative ${preferMaterials ? 'bg-blue-500' : 'bg-neutral-700'}`}
+                            >
+                                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${preferMaterials ? 'translate-x-5' : 'translate-x-0'}`} />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Scale Sliders */}
+                    <div className="space-y-6 pt-2 border-t border-neutral-800">
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
+                                    <Maximize size={12} />
+                                    卡片大小
+                                </label>
+                                <span className="text-xs font-mono text-neutral-500">{Math.round(cardScale * 100)}%</span>
+                            </div>
+                            <input 
+                                type="range" 
+                                min="0.5" 
+                                max="1.5" 
+                                step="0.1"
+                                value={cardScale}
+                                onChange={(e) => setCardScale(Number(e.target.value))}
+                                className="w-full h-1.5 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                            />
+                        </div>
+
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
+                                    <Type size={12} />
+                                    字体大小
+                                </label>
+                                <span className="text-xs font-mono text-neutral-500">{Math.round(textScale * 100)}%</span>
+                            </div>
+                            <input 
+                                type="range" 
+                                min="0.8" 
+                                max="2.0" 
+                                step="0.1"
+                                value={textScale}
+                                onChange={(e) => setTextScale(Number(e.target.value))}
+                                className="w-full h-1.5 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-2 pt-4 border-t border-neutral-800">
+                        <span className="text-neutral-300 text-sm block font-medium">每页数量</span>
+                        <select 
+                            value={pageSize}
+                            onChange={(e) => {
+                                setPage(1)
+                                setPageSize(Number(e.target.value))
+                            }}
+                            className="w-full px-3 py-2.5 rounded-xl bg-neutral-800 border-none outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm text-white"
+                        >
+                            {[12, 24, 36, 48, 60, 80, 100, 120].map((size) => (
+                                <option key={size} value={size}>{size} 项 / 页</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
             </div>
-            <div className="settings-list">
-              <div className="settings-row">
-                <span>模式</span>
-                <button
-                  className={`toggle ${editMode ? "active" : ""}`}
-                  onClick={toggleEditMode}
-                >
-                  {editMode ? "编辑模式" : "只读模式"}
-                </button>
-              </div>
-              <div className="settings-row">
-                <span>优先显示菜</span>
-                <button
-                  className={`toggle ${preferMaterials ? "active" : ""}`}
-                  onClick={() => {
-                    setPage(1)
-                    setPreferMaterials((prev) => !prev)
-                  }}
-                >
-                  {preferMaterials ? "已开启" : "未开启"}
-                </button>
-              </div>
-              <div className="settings-row">
-                <span>每页数量</span>
-                <select
-                  value={pageSize}
-                  onChange={(e) => {
-                    setPage(1)
-                    setPageSize(Number(e.target.value))
-                  }}
-                >
-                  {[12, 24, 36, 48, 60, 80, 100, 120].map((size) => (
-                    <option key={size} value={size}>
-                      {size}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
         </div>
       )}
+
     </div>
   )
 }
