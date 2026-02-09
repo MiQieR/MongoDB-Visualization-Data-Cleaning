@@ -67,6 +67,8 @@ export default function Home() {
       if (isInitialized) localStorage.setItem('food-admin-card-scale', cardScale.toString())
   }, [cardScale, isInitialized])
 
+  // Theme 固定为深色，无需系统或用户设置
+
   useEffect(() => {
       if (isInitialized) localStorage.setItem('food-admin-text-scale', textScale.toString())
   }, [textScale, isInitialized])
@@ -246,7 +248,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex min-h-screen font-sans selection:bg-blue-100 selection:text-blue-900 transition-colors duration-500">
+    <div className="flex min-h-screen font-sans selection:bg-blue-500/30 selection:text-blue-100 transition-colors duration-500">
       
       <Sidebar 
         filters={filters} 
@@ -270,7 +272,7 @@ export default function Home() {
             <div className="relative flex-1 group">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-blue-500 transition-colors" size={18} />
               <input 
-                className="w-full pl-10 pr-4 sm:pr-24 py-2 sm:py-2.5 rounded-xl bg-neutral-900/50 border border-neutral-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all shadow-sm backdrop-blur-md text-sm sm:text-base text-white"
+                className="w-full pl-10 pr-4 sm:pr-24 py-2 sm:py-2.5 rounded-xl glass border border-neutral-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all shadow-sm text-sm sm:text-base text-white placeholder:text-neutral-400"
                 placeholder="搜索..."
                 value={search}
                 onChange={(e) => {
@@ -291,7 +293,7 @@ export default function Home() {
                 <div className="flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
                     <button 
                         onClick={handleSelectAll}
-                        className="p-2 sm:px-3 sm:py-2 bg-neutral-900 border border-neutral-800 hover:shadow-md text-neutral-300 text-sm font-medium rounded-lg shadow-sm transition-colors flex items-center gap-2 backdrop-blur-md"
+                        className="p-2 sm:px-3 sm:py-2 glass hover:shadow-md text-neutral-300 text-sm font-medium rounded-lg shadow-sm transition-colors flex items-center gap-2"
                         title="全选/取消全选当前页"
                     >
                         <CheckSquare size={16} />
@@ -301,7 +303,7 @@ export default function Home() {
                     {selectedIds.length > 0 && (
                         <>
                             <div className="w-px h-6 bg-neutral-700 mx-1 hidden sm:block"></div>
-                            <span className="text-xs sm:text-sm font-medium text-neutral-500 tabular-nums">已选 {selectedIds.length}</span>
+                            <span className="text-xs sm:text-sm font-medium text-neutral-400 tabular-nums">已选 {selectedIds.length}</span>
                             <button 
                                 onClick={handleBulkDelete}
                                 className="px-3 sm:px-4 py-1.5 sm:py-2 bg-red-500 hover:bg-red-600 text-white text-xs sm:text-sm font-medium rounded-lg shadow-sm transition-colors"
@@ -315,7 +317,7 @@ export default function Home() {
             
             <button 
               onClick={() => setShowSettings(true)}
-              className="p-2 sm:p-2.5 rounded-full bg-neutral-900 border border-neutral-800 shadow-sm hover:shadow-md transition-all text-neutral-400 backdrop-blur-md"
+              className="p-2 sm:p-2.5 rounded-full glass shadow-sm hover:shadow-md transition-all text-neutral-400"
             >
               <Settings size={20} />
             </button>
@@ -337,7 +339,7 @@ export default function Home() {
             ) : foods.length === 0 ? (
                 <div className="h-64 flex items-center justify-center text-neutral-400 flex-col gap-2 border-2 border-dashed border-neutral-800 rounded-3xl mt-10">
                     <p className="font-medium text-lg text-neutral-400">暂无数据</p>
-                    <p className="text-sm text-neutral-500">尝试调整筛选条件或搜索关键词</p>
+                    <p className="text-sm text-neutral-300">尝试调整筛选条件或搜索关键词</p>
                 </div>
             ) : (
                 <div 
@@ -367,7 +369,7 @@ export default function Home() {
         </div>
 
         <div className="absolute bottom-[calc(1rem+env(safe-area-inset-bottom))] sm:bottom-6 left-1/2 -translate-x-1/2 z-20 w-full px-4 flex justify-center">
-             <div className="flex items-center gap-1 sm:gap-2 p-1 sm:p-1.5 bg-neutral-900/95 backdrop-blur-xl border border-neutral-800 rounded-xl sm:rounded-2xl shadow-2xl transition-colors duration-500">
+             <div className="flex items-center gap-1 sm:gap-2 p-1 sm:p-1.5 glass rounded-xl sm:rounded-2xl shadow-2xl transition-colors duration-500">
                 <button 
                     disabled={page <= 1}
                     onClick={() => setPage(p => Math.max(1, p - 1))}
@@ -379,7 +381,7 @@ export default function Home() {
                 <div className="flex items-center gap-1 sm:gap-2 px-1 sm:px-2 text-xs sm:text-sm font-medium text-neutral-400">
                     <span className="hidden xs:inline">第</span>
                     <input 
-                        className="w-10 sm:w-12 text-center py-0.5 sm:py-1 rounded-md bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none text-white font-mono"
+                        className="w-10 sm:w-12 text-center py-0.5 sm:py-1 rounded-md glass focus:ring-2 focus:ring-blue-500 outline-none text-white font-mono"
                         value={jumpPage}
                         onChange={(e) => setJumpPage(e.target.value)}
                         onKeyDown={(e) => {
@@ -417,15 +419,16 @@ export default function Home() {
 
       {showSettings && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setShowSettings(false)} />
-            <div className="relative bg-neutral-900/90 backdrop-blur-xl w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-neutral-800 transition-colors duration-500">
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowSettings(false)} />
+            <div className="relative glass w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden transition-colors duration-500">
                 <div className="px-6 py-4 border-b border-neutral-800 flex items-center justify-between bg-neutral-900/50">
                     <h3 className="font-semibold text-lg text-white">设置</h3>
-                    <button onClick={() => setShowSettings(false)} className="p-1 rounded-full hover:bg-neutral-800 transition-colors text-neutral-500"><X size={20}/></button>
+                    <button onClick={() => setShowSettings(false)} className="p-1 rounded-full hover:bg-neutral-800 transition-colors text-neutral-400"><X size={20}/></button>
                 </div>
                 <div className="p-4 sm:p-6 space-y-6 sm:space-y-8">
                     {/* Switches */}
                     <div className="space-y-4">
+                        
                         <div className="flex items-center justify-between">
                             <span className="text-neutral-300 font-medium text-sm">编辑模式</span>
                             <button 
@@ -458,7 +461,7 @@ export default function Home() {
                                     <Maximize size={12} />
                                     卡片大小
                                 </label>
-                                <span className="text-xs font-mono text-neutral-500">{Math.round(cardScale * 100)}%</span>
+                                <span className="text-xs font-mono text-neutral-400">{Math.round(cardScale * 100)}%</span>
                             </div>
                             <input 
                                 type="range" 
@@ -477,7 +480,7 @@ export default function Home() {
                                     <Type size={12} />
                                     字体大小
                                 </label>
-                                <span className="text-xs font-mono text-neutral-500">{Math.round(textScale * 100)}%</span>
+                                <span className="text-xs font-mono text-neutral-400">{Math.round(textScale * 100)}%</span>
                             </div>
                             <input 
                                 type="range" 
@@ -499,7 +502,7 @@ export default function Home() {
                                 setPage(1)
                                 setPageSize(Number(e.target.value))
                             }}
-                            className="w-full px-3 py-2.5 rounded-xl bg-neutral-800 border-none outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm text-white"
+                            className="w-full px-3 py-2.5 rounded-xl glass outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm text-white"
                         >
                             {[12, 24, 36, 48, 60, 80, 100, 120].map((size) => (
                                 <option key={size} value={size}>{size} 项 / 页</option>

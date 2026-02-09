@@ -14,7 +14,7 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="zh-CN">
+    <html lang="zh-CN" className="dark">
       <body>{children}</body>
     </html>
   )

@@ -10,7 +10,7 @@
 }
 
 @layer base {
-  :root {
+  .dark {
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
     --card: 240 10% 3.9%;
@@ -30,15 +30,23 @@
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
-    --radius: 0.75rem;
+    --app-bg: #08080a;
+    --app-text: #ffffff;
+    --app-glow: rgba(40, 50, 80, 0.15);
+    --scrollbar-thumb: rgba(255, 255, 255, 0.12);
+    --scrollbar-thumb-hover: rgba(255, 255, 255, 0.2);
+    --glass-bg: rgba(0, 0, 0, 0.5);
+    --glass-border: rgba(255, 255, 255, 0.1);
   }
 }
  
 @layer base {
   body {
-    @apply antialiased bg-[#08080a] text-white;
+    @apply antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
-    background-image: radial-gradient(circle at 50% 0%, rgba(40, 50, 80, 0.15), transparent 50%);
+    color: var(--app-text);
+    background-color: var(--app-bg);
+    background-image: radial-gradient(circle at 50% 0%, var(--app-glow), transparent 50%);
     background-attachment: fixed;
   }
 }
@@ -52,15 +60,15 @@
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--scrollbar-thumb);
   border-radius: 99px;
 }
 .custom-scrollbar:hover::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--scrollbar-thumb-hover);
 }
 
 .glass {
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--glass-bg);
   backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--glass-border);
 }

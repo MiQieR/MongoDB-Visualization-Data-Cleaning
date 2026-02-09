@@ -27,7 +27,7 @@ export function DetailView({ item, editedItem, editMode, onClose, onSave, onDele
     if (typeof value === "object" && value !== null) {
       return (
         <textarea
-          className="w-full h-32 p-3 rounded-xl bg-neutral-100 dark:bg-neutral-800 border-none text-sm font-mono focus:ring-2 focus:ring-blue-500/50 resize-y text-neutral-900 dark:text-white"
+          className="w-full h-32 p-3 rounded-xl bg-neutral-800 border-none text-sm font-mono focus:ring-2 focus:ring-blue-500/50 resize-y text-white"
           value={JSON.stringify(value, null, 2)}
           onChange={(e) => {
              try {
@@ -44,7 +44,7 @@ export function DetailView({ item, editedItem, editMode, onClose, onSave, onDele
     if (String(value).length > 50) {
         return (
             <textarea
-              className="w-full h-24 p-3 rounded-xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all text-neutral-900 dark:text-white"
+              className="w-full h-24 p-3 rounded-xl bg-neutral-800 border border-neutral-700 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all text-white"
               value={value || ""}
               onChange={(e) => handleChange(key, e.target.value)}
             />
@@ -53,7 +53,7 @@ export function DetailView({ item, editedItem, editMode, onClose, onSave, onDele
 
     return (
       <input
-        className="w-full px-3 py-2.5 rounded-xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all text-neutral-900 dark:text-white"
+        className="w-full px-3 py-2.5 rounded-xl bg-neutral-800 border border-neutral-700 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all text-white"
         value={value || ""}
         onChange={(e) => handleChange(key, e.target.value)}
       />
@@ -75,14 +75,14 @@ export function DetailView({ item, editedItem, editMode, onClose, onSave, onDele
       
       <div className="
         relative z-10 w-full sm:max-w-2xl h-[100dvh] sm:h-full 
-        bg-white dark:bg-neutral-900 backdrop-blur-2xl
-        sm:border-l border-white/20 dark:border-neutral-800 shadow-2xl
+        glass
+        sm:border-l shadow-2xl
         flex flex-col animate-in slide-in-from-right duration-500 ease-out
       ">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 sm:px-8 py-4 sm:py-6 border-b border-neutral-100 dark:border-neutral-800 pt-[calc(1rem+env(safe-area-inset-top))] sm:pt-6">
+        <div className="flex items-center justify-between px-6 sm:px-8 py-4 sm:py-6 border-b border-neutral-800 pt-[calc(1rem+env(safe-area-inset-top))] sm:pt-6">
           <div className="min-w-0">
-            <h2 className="text-xl sm:text-2xl font-black tracking-tight text-neutral-900 dark:text-white truncate">
+            <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white truncate">
               {editMode ? "编辑数据" : "数据详情"}
             </h2>
             <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest mt-0.5 sm:mt-1">ID: {item.id}</p>
@@ -92,7 +92,7 @@ export function DetailView({ item, editedItem, editMode, onClose, onSave, onDele
               <>
                 <button 
                   onClick={onDelete}
-                  className="p-2 sm:p-2.5 rounded-full text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                  className="p-2 sm:p-2.5 rounded-full text-red-500 hover:bg-red-900/20 transition-colors"
                   title="Delete"
                 >
                   <Trash2 size={20} />
@@ -108,7 +108,7 @@ export function DetailView({ item, editedItem, editMode, onClose, onSave, onDele
             )}
             <button 
               onClick={onClose}
-              className="p-2 sm:p-2.5 rounded-full text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+              className="p-2 sm:p-2.5 rounded-full text-neutral-400 hover:bg-neutral-800 transition-colors"
             >
               <X size={24} />
             </button>
@@ -118,7 +118,7 @@ export function DetailView({ item, editedItem, editMode, onClose, onSave, onDele
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 sm:p-8 custom-scrollbar pb-[calc(2rem+env(safe-area-inset-bottom))]">
             <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 mb-8 sm:mb-10">
-                <div className="w-full sm:w-40 aspect-square sm:h-40 flex-shrink-0 rounded-3xl overflow-hidden bg-white dark:bg-neutral-800 border border-neutral-100 dark:border-neutral-700 shadow-xl">
+                <div className="w-full sm:w-40 aspect-square sm:h-40 flex-shrink-0 rounded-3xl overflow-hidden glass shadow-xl">
                     {imageUrl ? (
                         <img src={imageUrl} alt="" className="w-full h-full object-cover" />
                     ) : (
@@ -131,7 +131,7 @@ export function DetailView({ item, editedItem, editMode, onClose, onSave, onDele
                              <div>
                                 <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">食物名称</label>
                                 <input 
-                                    className="w-full mt-1 text-xl sm:text-2xl font-black bg-transparent border-b-2 border-neutral-100 dark:border-neutral-800 focus:border-blue-500 outline-none pb-2 text-neutral-900 dark:text-white"
+                                    className="w-full mt-1 text-xl sm:text-2xl font-black bg-transparent border-b-2 border-neutral-800 focus:border-blue-500 outline-none pb-2 text-white"
                                     value={localItem.name || ""}
                                     onChange={(e) => handleChange("name", e.target.value)}
                                 />
@@ -139,9 +139,9 @@ export function DetailView({ item, editedItem, editMode, onClose, onSave, onDele
                         </div>
                      ) : (
                          <div className="space-y-2">
-                            <h3 className="text-2xl sm:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">{localItem.name}</h3>
+                            <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">{localItem.name}</h3>
                             <div className="flex flex-wrap gap-2">
-                                <span className="px-3 py-1 bg-blue-500/10 text-blue-600 text-[10px] font-bold rounded-full uppercase tracking-widest">Category ID: {localItem.category_id}</span>
+                                <span className="px-3 py-1 bg-blue-500/10 text-blue-300 text-[10px] font-bold rounded-full uppercase tracking-widest">Category ID: {localItem.category_id}</span>
                             </div>
                          </div>
                      )}
@@ -152,13 +152,13 @@ export function DetailView({ item, editedItem, editMode, onClose, onSave, onDele
                 {Object.entries(localItem).map(([key, value]) => {
                     if (key === 'image_file' || key === 'name') return null;
                     return (
-                        <div key={key} className="space-y-2 py-4 border-b border-neutral-50 dark:border-neutral-800/50 last:border-0">
-                            <div className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-[0.2em]">
+                        <div key={key} className="space-y-2 py-4 border-b border-neutral-800/50 last:border-0">
+                            <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-[0.2em]">
                                 {key}
                             </div>
                             <div className="min-w-0">
                                 {editMode ? renderEditor(key, value) : (
-                                    <div className="text-sm text-neutral-700 dark:text-neutral-300 break-words leading-relaxed font-medium">
+                                    <div className="text-sm text-neutral-300 break-words leading-relaxed font-medium">
                                         {renderValue(key, value)}
                                     </div>
                                 )}

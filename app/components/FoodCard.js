@@ -13,11 +13,11 @@ export function FoodCard({ item, selected, onSelect, onClick, editMode }) {
   return (
     <div 
       className={`
-        group relative flex flex-col bg-white dark:bg-neutral-900 
-        rounded-2xl overflow-hidden shadow-sm border border-white/50 dark:border-neutral-800
-        hover:shadow-xl hover:shadow-blue-500/5 hover:border-blue-500/20 
+        group relative flex flex-col glass
+        rounded-2xl overflow-hidden shadow-sm
+        hover:shadow-xl hover:shadow-blue-500/5 
         transition-all duration-300 ease-out cursor-pointer
-        ${selected ? 'ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-neutral-950' : ''}
+        ${selected ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-neutral-950' : ''}
       `}
       onClick={onClick}
       style={{
@@ -37,7 +37,7 @@ export function FoodCard({ item, selected, onSelect, onClick, editMode }) {
             w-6 h-6 rounded-full flex items-center justify-center border transition-all shadow-sm
             ${selected 
               ? 'bg-blue-500 border-blue-500 text-white scale-110' 
-              : 'bg-white/90 dark:bg-black/60 border-neutral-200 dark:border-neutral-700 hover:border-blue-400 backdrop-blur-md'}
+              : 'glass hover:border-blue-400'}
           `}>
             {selected && <Check size={14} strokeWidth={3} />}
           </div>
@@ -45,7 +45,7 @@ export function FoodCard({ item, selected, onSelect, onClick, editMode }) {
       )}
 
       {/* Image Area */}
-      <div className="absolute inset-0 bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
+      <div className="absolute inset-0 bg-neutral-800/50 overflow-hidden">
         {imageUrl ? (
           <img 
             src={imageUrl} 
@@ -62,7 +62,7 @@ export function FoodCard({ item, selected, onSelect, onClick, editMode }) {
       
       {/* ID Badge */}
       <div className="absolute top-2.5 left-2.5 z-20">
-        <div className="bg-black/30 dark:bg-black/50 backdrop-blur-md rounded-lg px-2 py-0.5 flex items-center justify-center min-w-[32px]">
+        <div className="glass rounded-lg px-2 py-0.5 flex items-center justify-center min-w-[32px]">
           <span className="text-[9px] font-bold text-white tracking-wider leading-none font-mono">
             #{item.id}
           </span>
@@ -71,16 +71,16 @@ export function FoodCard({ item, selected, onSelect, onClick, editMode }) {
 
       {/* Content Overlay */}
       <div className="absolute bottom-1.5 sm:bottom-2 left-1.5 sm:left-2 right-1.5 sm:right-2 z-20">
-        <div className="bg-white/95 dark:bg-black/70 backdrop-blur-md rounded-lg sm:rounded-xl p-2 sm:p-2.5 border border-white/20 dark:border-neutral-800/50 shadow-lg">
+        <div className="glass rounded-lg sm:rounded-xl p-2 sm:p-2.5 shadow-lg">
            <h3 
-             className="font-bold text-neutral-900 dark:text-neutral-100 truncate leading-tight mb-1 sm:mb-1.5 tracking-tight"
+             className="font-bold text-neutral-100 truncate leading-tight mb-1 sm:mb-1.5 tracking-tight"
              style={{ fontSize: 'calc(10px * var(--text-scale, 1.4))' }}
            >
             {item.name || "未命名"}
           </h3>
           
           <div 
-            className="flex flex-wrap gap-1.5 sm:gap-2 text-neutral-500 dark:text-neutral-400 font-medium"
+            className="flex flex-wrap gap-1.5 sm:gap-2 text-neutral-400 font-medium"
             style={{ fontSize: 'calc(8.5px * var(--text-scale, 1.4))' }}
           >
             <div className="flex items-center gap-1 sm:gap-1.5">
